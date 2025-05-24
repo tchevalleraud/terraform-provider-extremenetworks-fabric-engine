@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        os: [linux, darwin, windows]
+        arch: [amd64]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Build binary
+        run: |
+          mkdir -p dist
+          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} go build -o dist/terraform-provider-extremenetworks-fabric-engine_${{ matrix.os }}_${{ matrix.arch }}
+
+      - name: Generate checksums
+        run: |
+          cd dist
+          shasum -a 256 * > SHA256SUMS
